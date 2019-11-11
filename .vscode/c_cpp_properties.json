@@ -6,6 +6,11 @@
                 "ARDUINO=10800"
             ],
             "includePath": [
+                "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ESP8266mDNS\\src",
+                "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ESP8266WiFiMesh\\src",
+                "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ArduinoOTA",
+                "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ESP8266WiFi\\src",
+                "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ESP8266AVRISP\\src",
                 "${workspaceRoot}",
                 "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\**",
                 "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
