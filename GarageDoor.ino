@@ -43,7 +43,7 @@ void returnPage(String str) {
     ";
     String tmp2;
     tmp2 = "Door Is Open";
-    if (digitalRead(D7))
+    if (!digitalRead(D7))
     {
       tmp2 = "Door Is Closed";
     }
@@ -119,12 +119,13 @@ void loop(void) {
 
 void promptDoor() {
   digitalWrite(led, 1);
-  server.sendHeader("Location", "/",true);
-  server.send(302,"text/plain","");
   digitalWrite(relay_pin, HIGH);
-  delay(5000);
+  delay(100);
   digitalWrite(relay_pin, LOW);
   digitalWrite(led, 0);
+  delay(1000);
+  server.sendHeader("Location", "/",true);
+  server.send(302,"text/plain","");
 }
 
 void drawGraph() {
