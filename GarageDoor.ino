@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include <FS.h>
 
 
 #ifndef STASSID
@@ -15,7 +16,9 @@ int relay_pin = D1;
 const char *ssid = STASSID;
 const char *password = STAPSK;
 
-ESP8266WebServer server(80);
+ESP8266WebServer webServer(80);
+
+#include "FSBrowser.h"
 
 const int led = D4;
 
@@ -24,62 +27,45 @@ void handleRoot(){
 }
 
 void returnPage(String str) {
-  digitalWrite(led, 1);
+  digitalWrite(led, LOW);
   int sec = millis() / 1000;
   int min = sec / 60;
   int hr = min / 60;
+  String tmp2;
+  tmp2 = "Door Is Open";
+  if (!digitalRead(D7))
+  {
+    tmp2 = "Door Is Closed";
+  }
 
-  String tmp1 = "<!DOCTYPE html>\
-  <html>\
-  <head>\
-    <title>ESP8266 Swtich.</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Hello from ESP8266</h1>\
-    <p>Uptime: " + String(hr) + ":" + String(min % 60) + ":" + String(sec % 60) + "</p>\
-    ";
-    String tmp2;
-    tmp2 = "Door Is Open";
-    if (!digitalRead(D7))
-    {
-      tmp2 = "Door Is Closed";
-    }
-    String tmp3 = "<p><button type='button' onclick=\"window.location.href = '\\smoke';\">Smoke the Coffin!</button></p>\
-    <p>" + str + "</p>\
-    <img src='/test.svg' />\
-  </body>\
-</html>";
   String temp = tmp1 + tmp2 + tmp3;
-  server.send(200, "text/html", temp);
-  digitalWrite(led, 0);
+  webServer.send(200, "text/html", temp);
+  digitalWrite(led, HIGH);
 }
 
 void handleNotFound() {
-  digitalWrite(led, 1);
+  digitalWrite(led, LOW);
   String message = "File Not Found\n\n";
   message += "URI: ";
-  message += server.uri();
+  message += webServer.uri();
   message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
+  message += (webServer.method() == HTTP_GET) ? "GET" : "POST";
   message += "\nArguments: ";
-  message += server.args();
+  message += webServer.args();
   message += "\n";
 
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  for (uint8_t i = 0; i < webServer.args(); i++) {
+    message += " " + webServer.argName(i) + ": " + webServer.arg(i) + "\n";
   }
 
-  server.send(404, "text/plain", message);
-  digitalWrite(led, 0);
+  webServer.send(404, "text/plain", message);
+  digitalWrite(led, HIGH);
 }
 
 void setup(void) {
   pinMode(led, OUTPUT);
   pinMode(relay_pin, OUTPUT);
-  digitalWrite(led, 0);
+  digitalWrite(led, HIGH);
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -97,35 +83,69 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  if (MDNS.begin("esp8266")) {
+  if (MDNS.begin("esp8266garage")) {
     Serial.println("MDNS responder started");
   }
 
-  server.on("/", handleRoot);
-  server.on("/test.svg", drawGraph);
-  server.on("/inline", []() {
-    server.send(200, "text/plain", "this works as well");
+  webServer.on("/", handleRoot);
+  webServer.on("/test.svg", drawGraph);
+  webServer.on("/inline", []() {
+    webServer.send(200, "text/plain", "this works as well");
   });
-  server.on("/smoke", promptDoor);
-  server.onNotFound(handleNotFound);
-  server.begin();
+  webServer.on("/garage", promptDoor);
+
+  SPIFFS.begin();
+  {
+    Serial.println("SPIFFS contents:");
+
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      String fileName = dir.fileName();
+      size_t fileSize = dir.fileSize();
+      Serial.printf("FS File: %s, size: %s\n", fileName.c_str(), String(fileSize).c_str());
+    }
+    Serial.printf("\n");
+  }
+  //list directory
+  webServer.on("/list", HTTP_GET, handleFileList);
+  //load editor
+  webServer.on("/edit", HTTP_GET, []() {
+    if (!handleFileRead("/edit.htm")) webServer.send(404, "text/plain", "FileNotFound");
+  });
+  //create file
+  webServer.on("/edit", HTTP_PUT, handleFileCreate);
+  //delete file
+  webServer.on("/edit", HTTP_DELETE, handleFileDelete);
+  //first callback is called after the request has ended with all parsed arguments
+  //second callback handles file uploads at that location
+  webServer.on("/edit", HTTP_POST, []() {
+    webServer.send(200, "text/plain", "");
+  }, handleFileUpload);
+
+  webServer.serveStatic("/", SPIFFS, "/", "max-age=86400");
+
+  webServer.onNotFound(handleNotFound);
+  webServer.begin();
   Serial.println("HTTP server started");
+
+
+  
 }
 
 void loop(void) {
-  server.handleClient();
+  webServer.handleClient();
   MDNS.update();
 }
 
 void promptDoor() {
-  digitalWrite(led, 1);
-  digitalWrite(relay_pin, HIGH);
-  delay(100);
+  digitalWrite(led, LOW);
   digitalWrite(relay_pin, LOW);
-  digitalWrite(led, 0);
+  delay(100);
+  digitalWrite(relay_pin, HIGH);
   delay(1000);
-  server.sendHeader("Location", "/",true);
-  server.send(302,"text/plain","");
+  webServer.sendHeader("Location", "/",true);
+  webServer.send(302,"text/plain","");
+  digitalWrite(led, HIGH);
 }
 
 void drawGraph() {
@@ -143,5 +163,5 @@ void drawGraph() {
   }
   out += "</g>\n</svg>\n";
 
-  server.send(200, "image/svg+xml", out);
+  webServer.send(200, "image/svg+xml", out);
 }
