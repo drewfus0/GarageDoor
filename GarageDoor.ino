@@ -5,6 +5,7 @@
 #include <ESP8266WebServer.h>
 #include <FS.h>
 
+#include "Field.h"
 
 #ifndef STASSID
 #define STASSID "ImWifiRick"
@@ -22,25 +23,24 @@ ESP8266WebServer webServer(80);
 
 const int led = D4;
 
-void handleRoot(){
-  returnPage("...");
-}
-
 void returnPage(String str) {
   digitalWrite(led, LOW);
   int sec = millis() / 1000;
   int min = sec / 60;
   int hr = min / 60;
-  String tmp2;
-  tmp2 = "Door Is Open";
+  
+
+  String temp = DoorStatus();
+  webServer.send(200, "text/html",  DoorStatus());
+  digitalWrite(led, HIGH);
+}
+
+String DoorStatus(){
   if (!digitalRead(D7))
   {
-    tmp2 = "Door Is Closed";
+    return "Closed";
   }
-
-  String temp = tmp1 + tmp2 + tmp3;
-  webServer.send(200, "text/html", temp);
-  digitalWrite(led, HIGH);
+  return "Open";
 }
 
 void handleNotFound() {
@@ -87,13 +87,10 @@ void setup(void) {
     Serial.println("MDNS responder started");
   }
 
-  webServer.on("/", handleRoot);
-  webServer.on("/test.svg", drawGraph);
-  webServer.on("/inline", []() {
-    webServer.send(200, "text/plain", "this works as well");
-  });
   webServer.on("/garage", promptDoor);
-
+  webServer.on("/doorstatus", []() {
+    webServer.send(200, "text/html",  DoorStatus());
+  });
   SPIFFS.begin();
   {
     Serial.println("SPIFFS contents:");
@@ -146,22 +143,4 @@ void promptDoor() {
   webServer.sendHeader("Location", "/",true);
   webServer.send(302,"text/plain","");
   digitalWrite(led, HIGH);
-}
-
-void drawGraph() {
-  String out = "";
-  char temp[100];
-  out += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"400\" height=\"150\">\n";
-  out += "<rect width=\"400\" height=\"150\" fill=\"rgb(250, 230, 210)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
-  out += "<g stroke=\"black\">\n";
-  int y = rand() % 130;
-  for (int x = 10; x < 390; x += 10) {
-    int y2 = rand() % 130;
-    sprintf(temp, "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke-width=\"1\" />\n", x, 140 - y, x + 10, 140 - y2);
-    out += temp;
-    y = y2;
-  }
-  out += "</g>\n</svg>\n";
-
-  webServer.send(200, "image/svg+xml", out);
 }
