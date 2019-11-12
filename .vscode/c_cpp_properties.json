@@ -6,6 +6,7 @@
                 "ARDUINO=10800"
             ],
             "includePath": [
+                "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.6.0\\libraries\\ESP8266mDNS\\src",
                 "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ESP8266mDNS\\src",
                 "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ESP8266WiFiMesh\\src",
                 "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\libraries\\ArduinoOTA",
@@ -17,7 +18,8 @@
                 "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\**",
                 "C:\\Users\\drewf\\Documents\\Arduino\\hardware\\tools\\**",
-                "C:\\Users\\drewf\\Documents\\Arduino\\libraries\\**"
+                "C:\\Users\\drewf\\Documents\\Arduino\\libraries\\**",
+                "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.6.0\\**"
             ],
             "forcedInclude": [],
             "intelliSenseMode": "msvc-x64",

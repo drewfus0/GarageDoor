@@ -1,7 +1,9 @@
+
+#include <ESP8266mDNS.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
+
 
 #ifndef STASSID
 #define STASSID "ImWifiRick"
@@ -15,7 +17,7 @@ const char *password = STAPSK;
 
 ESP8266WebServer server(80);
 
-const int led = 4;
+const int led = D4;
 
 void handleRoot(){
   returnPage("...");
@@ -27,7 +29,7 @@ void returnPage(String str) {
   int min = sec / 60;
   int hr = min / 60;
 
-  String temp = "<!DOCTYPE html>\
+  String tmp1 = "<!DOCTYPE html>\
   <html>\
   <head>\
     <title>ESP8266 Swtich.</title>\
@@ -38,11 +40,19 @@ void returnPage(String str) {
   <body>\
     <h1>Hello from ESP8266</h1>\
     <p>Uptime: " + String(hr) + ":" + String(min % 60) + ":" + String(sec % 60) + "</p>\
-    <p><button type='button' onclick=\"window.location.href = '\\smoke';\">Smoke the Coffin!</button></p>\
+    ";
+    String tmp2;
+    tmp2 = "Door Is Open";
+    if (digitalRead(D7))
+    {
+      tmp2 = "Door Is Closed";
+    }
+    String tmp3 = "<p><button type='button' onclick=\"window.location.href = '\\smoke';\">Smoke the Coffin!</button></p>\
     <p>" + str + "</p>\
     <img src='/test.svg' />\
   </body>\
 </html>";
+  String temp = tmp1 + tmp2 + tmp3;
   server.send(200, "text/html", temp);
   digitalWrite(led, 0);
 }
@@ -108,8 +118,9 @@ void loop(void) {
 }
 
 void promptDoor() {
-  returnPage("The Coffin is SMOKECAN !!!");
   digitalWrite(led, 1);
+  server.sendHeader("Location", "/",true);
+  server.send(302,"text/plain","");
   digitalWrite(relay_pin, HIGH);
   delay(5000);
   digitalWrite(relay_pin, LOW);
