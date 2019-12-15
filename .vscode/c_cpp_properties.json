@@ -6,6 +6,7 @@
                 "ARDUINO=10800"
             ],
             "includePath": [
+                "C:\\Users\\drewf\\Documents\\Arduino\\libraries\\PubSubClient\\src",
                 "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.6.0\\libraries\\ESP8266mDNS\\src",
                 "C:\\Users\\drewf\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.6.0\\**",
                 "${workspaceRoot}",

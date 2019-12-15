@@ -1,11 +1,14 @@
 
+
 #include <ESP8266mDNS.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>
+#include <PubSubClient.h>
 
 #include "Field.h"
+#include "FSBrowser.h"
 
 #ifndef STASSID
 #define STASSID "ImWifiRick"
@@ -18,8 +21,6 @@ const char *ssid = STASSID;
 const char *password = STAPSK;
 
 ESP8266WebServer webServer(80);
-
-#include "FSBrowser.h"
 
 const int led = D4;
 
@@ -136,9 +137,9 @@ void loop(void) {
 
 void promptDoor() {
   digitalWrite(led, LOW);
-  digitalWrite(relay_pin, LOW);
-  delay(100);
   digitalWrite(relay_pin, HIGH);
+  delay(100);
+  digitalWrite(relay_pin, LOW);
   delay(1000);
   webServer.sendHeader("Location", "/",true);
   webServer.send(302,"text/plain","");
