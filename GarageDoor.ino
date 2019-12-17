@@ -15,14 +15,57 @@
 #define STAPSK  "1234567890"
 #endif
 
+
+#define MQTT_USERNAME   "drew"
+#define MQTT_KEY        "drew33"
+IPAddress server(10, 1, 1, 10);
+
+#define Garage "garage/door/state"
 int relay_pin = D1;
+int led = D4;
+int sensor = D7;
+int unk = 0;
 
 const char *ssid = STASSID;
 const char *password = STAPSK;
 
 ESP8266WebServer webServer(80);
 
-const int led = D4;
+WiFiClient wifiClient;
+PubSubClient client(server, 1883, mqttMsg, wifiClient);
+long lastReconnectAttempt = 0;
+
+void mqttMsg(char* topic, byte* payload, unsigned int length){
+  String msg = (char*)payload;
+
+}
+
+boolean reconnect() {
+  if (client.connect("arduinoClient")) {
+    // Once connected, publish an announcement...
+    client.publish(Garage,"Connected");
+    // ... and resubscribe
+    client.subscribe(Garage);
+  }
+  return client.connected();
+}
+
+void MQTTLoop(){
+  if (!client.connected()) {
+    long now = millis();
+    if (now - lastReconnectAttempt > 5000) {
+      lastReconnectAttempt = now;
+      // Attempt to reconnect
+      if (reconnect()) {
+        lastReconnectAttempt = 0;
+      }
+    }
+  } else {
+    // Client connected
+    
+    client.loop();
+  }
+}
 
 void returnPage(String str) {
   digitalWrite(led, LOW);
@@ -36,12 +79,16 @@ void returnPage(String str) {
   digitalWrite(led, HIGH);
 }
 
-String DoorStatus(){
-  if (!digitalRead(D7))
+char* DoorStatus2(){
+  if (!digitalRead(sensor))
   {
     return "Closed";
   }
   return "Open";
+}
+
+String DoorStatus(){
+  return String(DoorStatus2());
 }
 
 void handleNotFound() {
@@ -103,6 +150,10 @@ void setup(void) {
       Serial.printf("FS File: %s, size: %s\n", fileName.c_str(), String(fileSize).c_str());
     }
     Serial.printf("\n");
+    
+    // Done when init
+    //client.setServer(SERVER, SERVERPORT);
+    //client.setCallback(callback);
   }
   //list directory
   webServer.on("/list", HTTP_GET, handleFileList);
@@ -129,10 +180,21 @@ void setup(void) {
 
   
 }
+int LastknownSensor;
+void CheckDoor() {
+  if (digitalRead(sensor) != LastknownSensor)
+  {
+    /* publish mqtt */
+    LastknownSensor = digitalRead(sensor);
+    client.publish(Garage, DoorStatus2());
+  }
+}
 
 void loop(void) {
   webServer.handleClient();
   MDNS.update();
+  MQTTLoop();
+  CheckDoor();
 }
 
 void promptDoor() {
