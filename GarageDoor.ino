@@ -1,26 +1,17 @@
-
-
 #include <ESP8266mDNS.h>
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>
-#include <PubSubClient.h>
 
 #include "Field.h"
-#include "FSBrowser.h"
 
+//Wifi Stuff
 #ifndef STASSID
 #define STASSID "ImWifiRick"
 #define STAPSK  "1234567890"
 #endif
 
 
-#define MQTT_USERNAME   "drew"
-#define MQTT_KEY        "drew33"
-IPAddress server(10, 1, 1, 10);
-
-#define Garage "garage/door/state"
 int relay_pin = D1;
 int led = D4;
 int sensor = D7;
@@ -30,49 +21,14 @@ const char *ssid = STASSID;
 const char *password = STAPSK;
 
 ESP8266WebServer webServer(80);
-
-WiFiClient wifiClient;
-PubSubClient client(server, 1883, mqttMsg, wifiClient);
-long lastReconnectAttempt = 0;
-
-void mqttMsg(char* topic, byte* payload, unsigned int length){
-  String msg = (char*)payload;
-
-}
-
-boolean reconnect() {
-  if (client.connect("arduinoClient")) {
-    // Once connected, publish an announcement...
-    client.publish(Garage,"Connected");
-    // ... and resubscribe
-    client.subscribe(Garage);
-  }
-  return client.connected();
-}
-
-void MQTTLoop(){
-  if (!client.connected()) {
-    long now = millis();
-    if (now - lastReconnectAttempt > 5000) {
-      lastReconnectAttempt = now;
-      // Attempt to reconnect
-      if (reconnect()) {
-        lastReconnectAttempt = 0;
-      }
-    }
-  } else {
-    // Client connected
-    
-    client.loop();
-  }
-}
+#include "FSBrowser.h"
+#include "mqtt.h"
 
 void returnPage(String str) {
   digitalWrite(led, LOW);
   int sec = millis() / 1000;
   int min = sec / 60;
   int hr = min / 60;
-  
 
   String temp = DoorStatus();
   webServer.send(200, "text/html",  DoorStatus());
@@ -193,7 +149,7 @@ void CheckDoor() {
 void loop(void) {
   webServer.handleClient();
   MDNS.update();
-  MQTTLoop();
+  mqttLoop();
   CheckDoor();
 }
 
