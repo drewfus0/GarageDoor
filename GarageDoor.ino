@@ -171,7 +171,7 @@ void promptDoor() {
   digitalWrite(relay_pin, HIGH);
   delay(100);
   digitalWrite(relay_pin, LOW);
-  webServer.sendHeader("Location", "/");
+  //webServer.sendHeader("Location", "/");
   webServer.send(200,"text/plain","Done!");
   digitalWrite(led, HIGH);
 }
