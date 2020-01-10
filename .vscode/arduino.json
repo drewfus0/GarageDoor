@@ -1,6 +1,6 @@
 {
     "sketch": "GarageDoor.ino",
-    "port": "COM4",
+    "port": "COM7",
     "board": "esp8266:esp8266:d1_mini_lite",
-    "configuration": "xtal=160,vt=flash,exception=disabled,ssl=all,eesz=1M512,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600"
+    "configuration": "xtal=80,vt=flash,exception=disabled,ssl=all,eesz=1M512,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600"
 }

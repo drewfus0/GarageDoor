@@ -67,6 +67,7 @@ void handleNotFound() {
 }
 
 void setup(void) {
+  MqttSetFuctionDoor(promptDoor);
   pinMode(led, OUTPUT);
   pinMode(relay_pin, OUTPUT);
   digitalWrite(led, HIGH);
@@ -132,17 +133,15 @@ void setup(void) {
   webServer.onNotFound(handleNotFound);
   webServer.begin();
   Serial.println("HTTP server started");
-
-
-  
 }
+
 int LastknownSensor;
 void CheckDoor() {
   if (digitalRead(sensor) != LastknownSensor)
   {
     /* publish mqtt */
     LastknownSensor = digitalRead(sensor);
-    client.publish(Garage, DoorStatus2());
+    client.publish(Garage, DoorStatus2(), true);
   }
 }
 
@@ -154,12 +153,25 @@ void loop(void) {
 }
 
 void promptDoor() {
+
+  if (webServer.hasArg("code"))
+  {
+    Serial.print("Toggle Door code:");
+    String code = webServer.arg("code");
+    Serial.println(webServer.arg("code"));
+    if (!code.equalsIgnoreCase("1234"))
+    {
+      webServer.send(403,"text/plain","In Correct Code");
+      return;
+    }
+    
+  }
+  
   digitalWrite(led, LOW);
   digitalWrite(relay_pin, HIGH);
   delay(100);
   digitalWrite(relay_pin, LOW);
-  delay(1000);
-  webServer.sendHeader("Location", "/",true);
-  webServer.send(302,"text/plain","");
+  webServer.sendHeader("Location", "/");
+  webServer.send(200,"text/plain","Done!");
   digitalWrite(led, HIGH);
 }
