@@ -24,7 +24,7 @@
       height: 44px;
       margin: 15px 0 0 10%;
       border-radius: 3px;
-      background-color: #1e907e;
+      background-color: lightskyblue;
       font-size: 0.64em;
       text-align: center;
       color: #ecaa32;
@@ -52,7 +52,7 @@
   <p class="text _text">
     Door Open Status: <span class="doorstatus">Unknown</span>
   </p>
-  <button onClick="window.location.href='/garage';" class="_button">Toggle Door</button>
+  <button onClick="ToggleDoor();" class="_button">Toggle Door</button>
   <script src="js/jquery-3.1.1.min.js"></script>
   <script>
     function DoorState(){
@@ -62,11 +62,16 @@
       $(".doorstatus").html(data);
     }
     function ToggleDoor(){
-      $.get("garage",function() {});
+      $("._button").css( "background-color", "blue" );
+      var c = prompt("Enter your Code?","1234")
+      $.get("garage", { code:c } ,function() {
+        $("._button").css( "background-color", "green" );},)
+      .fail(function() {
+        $("._button").css( "background-color", "red" );});
     }
     $(document).ready(function() {
       DoorState();
-      setInterval(DoorState, 2000);
+      setInterval(DoorState, 1000);
     });
   </script>
 </body>
